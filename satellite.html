@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SATELLITE MISSION CONTROL — Real-Time Satellite Monitoring</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="sat-body-page">
+    <div class="smc-standalone-app">
+        <!-- TOP HEADER BAR -->
+        <header class="smc-header">
+            <div class="smc-header-left">
+                <div class="smc-logo-icon">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </div>
+                <div class="smc-brand">
+                    <h1>SATELLITE MISSION CONTROL</h1>
+                    <span class="smc-subbrand">REAL-TIME SATELLITE MONITORING DASHBOARD</span>
+                </div>
+                <div class="smc-live-badge"><span class="live-dot"></span> LIVE</div>
+                <div class="smc-utc-clock">
+                    <span class="utc-time" id="smcUtcTime">UTC 12:37:21</span>
+                    <span class="utc-date" id="smcUtcDate">31 May 2025</span>
+                </div>
+            </div>
+
+            <nav class="smc-nav-tabs">
+                <button class="smc-tab active">DASHBOARD</button>
+                <button class="smc-tab">SATELLITES</button>
+                <button class="smc-tab">GROUND STATIONS</button>
+                <button class="smc-tab">DATA & IMAGES</button>
+                <button class="smc-tab">ALERTS <span class="tab-badge">3</span></button>
+                <button class="smc-tab">SETTINGS</button>
+            </nav>
+
+            <div class="smc-header-right">
+                <a href="index.html" class="btn-return-launch">🚀 LAUNCH CONTROL</a>
+                <div class="smc-user-avatar">MC</div>
+            </div>
+        </header>
+
+        <!-- MAIN DASHBOARD CONTENT (3-COLUMN GRID) -->
+        <main class="smc-main-container">
+            <!-- TOP GRID (LEFT, CENTER, RIGHT) -->
+            <div class="smc-top-grid">
+                
+                <!-- ================= LEFT COLUMN: SATELLITE INFO & COMMS ================= -->
+                <aside class="smc-col smc-col-left">
+                    <!-- SATELLITE INFORMATION CARD -->
+                    <div class="smc-card sat-info-card">
+                        <div class="smc-card-header">
+                            <h3>SATELLITE INFORMATION</h3>
+                        </div>
+                        <div class="sat-visual-banner">
+                            <div class="sat-render-wrapper">
+                                <div class="sat-3d-model">
+                                    <div class="sat-panel left"></div>
+                                    <div class="sat-core"></div>
+                                    <div class="sat-panel right"></div>
+                                </div>
+                            </div>
+                            <span class="badge-operational">OPERATIONAL</span>
+                        </div>
+                        <div class="sat-headline">
+                            <h2>Sentinel-2A <span class="sat-subname">/ VIKRAM-SAT</span></h2>
+                        </div>
+                        <table class="sat-info-table">
+                            <tr><td>NORAD ID</td><td>40697</td></tr>
+                            <tr><td>COSPAR ID</td><td>2015-028A</td></tr>
+                            <tr><td>Operator</td><td>ESA / ISRO</td></tr>
+                            <tr><td>Country</td><td>🇪🇺 European Union / 🇮🇳 India</td></tr>
+                            <tr><td>Mission</td><td>Earth Observation</td></tr>
+                            <tr><td>Launch Date</td><td>23 June 2015</td></tr>
+                            <tr><td>Status</td><td class="text-green">Operational</td></tr>
+                            <tr><td>Orbit Type</td><td>Sun-synchronous</td></tr>
+                            <tr><td>Altitude</td><td id="smcInfoAlt">786 km</td></tr>
+                            <tr><td>Inclination</td><td>98.62°</td></tr>
+                            <tr><td>Period</td><td>100.6 min</td></tr>
+                            <tr><td>Mass</td><td>1140 kg</td></tr>
+                            <tr><td>Expected Lifetime</td><td>7+ Years</td></tr>
+                        </table>
+                        <button class="btn-view-sat-details">VIEW SATELLITE DETAILS ↗</button>
+                    </div>
+
+                    <!-- COMMUNICATION & GROUND STATIONS -->
+                    <div class="smc-card sat-comms-card">
+                        <div class="smc-card-header">
+                            <h3>COMMUNICATION</h3>
+                        </div>
+                        <div class="station-block">
+                            <div class="station-label-row">
+                                <span class="station-title">CURRENT GROUND STATION</span>
+                                <span class="station-signal-dbm">-71 dBm</span>
+                            </div>
+                            <div class="station-name-row">
+                                <strong>Santiago Station (Chile)</strong>
+                                <div class="signal-bars">
+                                    <span class="bar active"></span>
+                                    <span class="bar active"></span>
+                                    <span class="bar active"></span>
+                                    <span class="bar"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="station-block next-station">
+                            <div class="station-label-row">
+                                <span class="station-title">NEXT GROUND STATION</span>
+                                <span class="next-station-countdown" id="smcNextContact">00:12:45</span>
+                            </div>
+                            <div class="station-name-row">
+                                <strong>New Delhi Station (India)</strong>
+                                <span class="station-status-text">NEXT CONTACT</span>
+                            </div>
+                        </div>
+
+                        <div class="station-footer-stats">
+                            <div><span>LAST CONTACT</span> <strong>12:26:10 (10 min ago)</strong></div>
+                            <div><span>DURATION</span> <strong>07m 32s</strong></div>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- ================= CENTER COLUMN: 3D GLOBE, 2D TRACK, SPARKLINES ================= -->
+                <section class="smc-col smc-col-center">
+                    
+                    <!-- HERO: LIVE SATELLITE TRACKING 3D GLOBE -->
+                    <div class="smc-card globe-card">
+                        <div class="smc-card-header">
+                            <h3>LIVE SATELLITE TRACKING</h3>
+                            
+                            <!-- Interactive Speed & Direction Controls -->
+                            <div class="globe-header-tools">
+                                <div class="orbit-control-group">
+                                    <button id="btnOrbitDirection" class="smc-ctrl-btn" title="Toggle Orbit Direction">
+                                        🔄 <span id="dirLabel">PROGRADE</span>
+                                    </button>
+                                    <div class="speed-slider-wrap">
+                                        <span class="speed-lbl">SPEED:</span>
+                                        <input type="range" id="satSpeedSlider" min="0" max="5" step="0.2" value="1.0">
+                                        <span id="satSpeedValue" class="speed-val">1.0x</span>
+                                    </div>
+                                    <div class="speed-presets">
+                                        <button class="spd-pill active" data-spd="1.0">1x</button>
+                                        <button class="spd-pill" data-spd="2.0">2x</button>
+                                        <button class="spd-pill" data-spd="5.0">5x</button>
+                                    </div>
+                                    <button id="btnOrbitPause" class="smc-ctrl-btn pause-btn" title="Pause / Resume Orbit">
+                                        ⏸ PAUSE
+                                    </button>
+                                </div>
+                                <span class="badge-hud">3D VIEW</span>
+                            </div>
+                        </div>
+
+                        <div class="globe-viewport-container">
+                            <canvas id="smc3DGlobeCanvas" width="620" height="320"></canvas>
+                            
+                            <!-- Floating HUD Tooltip -->
+                            <div class="floating-hud-panel" id="floatingHud">
+                                <div class="hud-sat-title">Sentinel-2A / VIKRAM-SAT</div>
+                                <div class="hud-meta-grid">
+                                    <div><span>LAT:</span> <strong id="hudLat">19.0760° N</strong></div>
+                                    <div><span>LON:</span> <strong id="hudLon">72.8777° E</strong></div>
+                                    <div><span>ALT:</span> <strong id="hudAlt">786.2 km</strong></div>
+                                    <div><span>SPD:</span> <strong id="hudSpd">7.46 km/s</strong></div>
+                                </div>
+                            </div>
+
+                            <!-- Floating Map Controls -->
+                            <div class="globe-floating-tools">
+                                <button id="btnToggle3D" title="Toggle 3D/2D">🌐</button>
+                                <button id="btnGlobeZoomIn" title="Zoom In">+</button>
+                                <button id="btnGlobeZoomOut" title="Zoom Out">−</button>
+                                <button id="btnGlobeCenter" title="Center on Satellite">🎯</button>
+                            </div>
+
+                            <!-- Bottom Telemetry Strip on Globe -->
+                            <div class="globe-telemetry-strip">
+                                <div class="strip-item"><span class="s-label">LATITUDE</span><strong id="stripLat">19.0760° N</strong></div>
+                                <div class="strip-item"><span class="s-label">LONGITUDE</span><strong id="stripLon">72.8777° E</strong></div>
+                                <div class="strip-item"><span class="s-label">ALTITUDE</span><strong id="stripAlt">786.2 km</strong></div>
+                                <div class="strip-item"><span class="s-label">SPEED</span><strong id="stripSpd">7.46 km/s</strong></div>
+                                <div class="strip-item"><span class="s-label">DIRECTION</span><strong id="stripDir">SW 234°</strong></div>
+                                <div class="strip-item"><span class="s-label">NEXT PASS</span><strong id="stripNextPass">00:12:45</strong></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MIDDLE SPLIT: 2D GROUND TRACK WORLD MAP + TELEMETRY HISTORY -->
+                    <div class="smc-middle-subgrid">
+                        
+                        <!-- 2D GROUND TRACK (CUSTOM WORLD MAP BG) -->
+                        <div class="smc-card ground-track-card">
+                            <div class="smc-card-header">
+                                <h3>GROUND TRACK</h3>
+                            </div>
+                            <div class="ground-track-container">
+                                <canvas id="smc2DTrackCanvas" width="580" height="250"></canvas>
+                                <div class="track-legend">
+                                    <span><span class="leg-dot yellow"></span> Orbit Path</span>
+                                    <span><span class="leg-dot green"></span> Ground Track</span>
+                                    <span><span class="leg-dot cyan"></span> Footprint</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TELEMETRY HISTORY (4 LIVE CHARTS) -->
+                        <div class="smc-card telemetry-history-card">
+                            <div class="smc-card-header">
+                                <h3>TELEMETRY HISTORY</h3>
+                                <div class="time-filter-pills">
+                                    <button class="pill-btn active" data-time="1h">1H</button>
+                                    <button class="pill-btn" data-time="6h">6H</button>
+                                    <button class="pill-btn" data-time="24h">24H</button>
+                                    <button class="pill-btn" data-time="7d">7D</button>
+                                    <button class="pill-btn" data-time="30d">30D</button>
+                                </div>
+                            </div>
+                            <div class="history-charts-stack">
+                                <div class="chart-row-item">
+                                    <div class="chart-title"><span>BATTERY (%)</span><strong id="chValBat">91%</strong></div>
+                                    <canvas id="chartBatCanvas" width="270" height="30"></canvas>
+                                </div>
+                                <div class="chart-row-item">
+                                    <div class="chart-title"><span>TEMPERATURE (°C)</span><strong id="chValTemp">28.4°C</strong></div>
+                                    <canvas id="chartTempCanvas" width="270" height="30"></canvas>
+                                </div>
+                                <div class="chart-row-item">
+                                    <div class="chart-title"><span>SOLAR POWER (kW)</span><strong id="chValSolar">1.84 kW</strong></div>
+                                    <canvas id="chartSolarCanvas" width="270" height="30"></canvas>
+                                </div>
+                                <div class="chart-row-item">
+                                    <div class="chart-title"><span>SIGNAL STRENGTH (dBm)</span><strong id="chValSig">-71 dBm</strong></div>
+                                    <canvas id="chartSigCanvas" width="270" height="30"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= RIGHT COLUMN: REAL-TIME TELEMETRY, PASS OVER & ALERTS ================= -->
+                <aside class="smc-col smc-col-right">
+                    
+                    <!-- REAL-TIME TELEMETRY (12 SENSORS) -->
+                    <div class="smc-card real-telemetry-card">
+                        <div class="smc-card-header">
+                            <h3>REAL-TIME TELEMETRY</h3>
+                        </div>
+                        <div class="telemetry-widgets-grid">
+                            <div class="tele-widget">
+                                <span class="tele-lbl">BATTERY</span>
+                                <strong class="text-green" id="teleBat">91%</strong>
+                                <span class="tele-sub">24.7 V</span>
+                            </div>
+                            <div class="tele-widget">
+                                <span class="tele-lbl">SOLAR POWER</span>
+                                <strong class="text-yellow" id="teleSolar">1.84 kW</strong>
+                                <span class="tele-sub">NOMINAL</span>
+                            </div>
+                            <div class="tele-widget">
+                                <span class="tele-lbl">POWER USAGE</span>
+                                <strong class="text-orange" id="telePower">1.23 kW</strong>
+                                <span class="tele-sub">OPTIMAL</span>
+                            </div>
+                            <div class="tele-widget">
+                                <span class="tele-lbl">TEMPERATURE</span>
+                                <strong class="text-red" id="teleTemp">28.4 °C</strong>
+                                <span class="tele-sub">NORMAL</span>
+                            </div>
+                            <div class="tele-widget">
+                                <span class="tele-lbl">CPU USAGE</span>
+                                <strong id="teleCpu">34%</strong>
+                                <span class="tele-sub">4 CORES</span>
+                            </div>
+                            <div class="tele-widget">
+                                <span class="tele-lbl">MEMORY</span>
+                                <strong id="teleMem">42%</strong>
+                                <span class="tele-sub">3.4 / 8 GB</span>
+                            </div>
+                            <div class="tele-widget">
+                                <span class="tele-lbl">STORAGE</span>
+                                <strong id="teleStorage">65%</strong>
+                                <span class="tele-sub">520 GB FREE</span>
+                            </div>
+                            <div class="tele-widget">
+                                <span class="tele-lbl">UPLINK</span>
+                                <strong class="text-green">CONNECTED</strong>
+                                <span class="tele-sub">2.4 GHz</span>
+                            </div>
+                            <div class="tele-widget">
+                                <span class="tele-lbl">DOWNLINK</span>
+                                <strong class="text-green">CONNECTED</strong>
+                                <span class="tele-sub">8.2 GHz</span>
+                            </div>
+                            <div class="tele-widget">
+                                <span class="tele-lbl">SIGNAL</span>
+                                <strong class="text-green" id="teleSignal">-71 dBm</strong>
+                                <span class="tele-sub">EXCELLENT</span>
+                            </div>
+                            <div class="tele-widget">
+                                <span class="tele-lbl">DATA TX</span>
+                                <strong>12.45 GB</strong>
+                                <span class="tele-sub">TODAY</span>
+                            </div>
+                            <div class="tele-widget">
+                                <span class="tele-lbl">DATA RX</span>
+                                <strong>8.32 GB</strong>
+                                <span class="tele-sub">TODAY</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CURRENT PASS OVER (INDIA) -->
+                    <div class="smc-card current-pass-card">
+                        <div class="smc-card-header">
+                            <h3>CURRENT PASS OVER</h3>
+                        </div>
+                        <div class="pass-location-banner">
+                            <span class="flag-icon">🇮🇳</span>
+                            <div class="pass-loc-meta">
+                                <strong>INDIA - Maharashtra</strong>
+                                <span>19.0760° N, 72.8777° E</span>
+                            </div>
+                        </div>
+                        <div class="pass-mini-map-box">
+                            <canvas id="smcPassMiniMap" width="280" height="90"></canvas>
+                        </div>
+                        <div class="pass-timeline-meta">
+                            <div class="p-row"><span>Pass Start</span> <strong>12:32:10</strong></div>
+                            <div class="p-row"><span>Max Elevation</span> <strong>12:37:45 (78°)</strong></div>
+                            <div class="p-row"><span>Pass End</span> <strong>12:43:20</strong></div>
+                        </div>
+                    </div>
+
+                    <!-- ALERTS FEED -->
+                    <div class="smc-card alerts-feed-card">
+                        <div class="smc-card-header">
+                            <h3>ALERTS</h3>
+                            <span class="alerts-count-badge">3 ACTIVE</span>
+                        </div>
+                        <div class="alerts-list">
+                            <div class="alert-item high">
+                                <span class="a-badge high">HIGH</span>
+                                <div class="a-info">
+                                    <span class="a-text">Battery temperature above normal range</span>
+                                    <span class="a-time">31 May 2025 12:35:10</span>
+                                </div>
+                            </div>
+                            <div class="alert-item warn">
+                                <span class="a-badge warn">WARN</span>
+                                <div class="a-info">
+                                    <span class="a-text">Ground station connection signal fluctuating</span>
+                                    <span class="a-time">31 May 2025 12:31:45</span>
+                                </div>
+                            </div>
+                            <div class="alert-item info">
+                                <span class="a-badge info">INFO</span>
+                                <div class="a-info">
+                                    <span class="a-text">Orbit correction maneuver executed</span>
+                                    <span class="a-time">31 May 2025 12:28:22</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+
+            <!-- BOTTOM GRID: ORBITAL PARAMETERS, TLE DATA, CONSTELLATION -->
+            <div class="smc-bottom-grid">
+                <!-- ORBITAL PARAMETERS -->
+                <div class="smc-card orbital-params-card">
+                    <div class="smc-card-header">
+                        <h3>ORBITAL PARAMETERS</h3>
+                    </div>
+                    <div class="orbital-params-grid">
+                        <div class="orb-param"><span class="o-lbl">SEMIMAJOR AXIS</span><strong>7,164.5 km</strong></div>
+                        <div class="orb-param"><span class="o-lbl">ECCENTRICITY</span><strong>0.000142</strong></div>
+                        <div class="orb-param"><span class="o-lbl">INCLINATION</span><strong>98.62°</strong></div>
+                        <div class="orb-param"><span class="o-lbl">RAAN</span><strong>102.15°</strong></div>
+                        <div class="orb-param"><span class="o-lbl">ARG OF PERIAPSIS</span><strong>87.37°</strong></div>
+                        <div class="orb-param"><span class="o-lbl">MEAN ANOMALY</span><strong>178.52°</strong></div>
+                        <div class="orb-param"><span class="o-lbl">PERIOD</span><strong>100.6 min</strong></div>
+                        <div class="orb-param"><span class="o-lbl">B* DRAG TERM</span><strong>2.18e-05</strong></div>
+                    </div>
+                </div>
+
+                <!-- TLE DATA -->
+                <div class="smc-card tle-data-card">
+                    <div class="smc-card-header">
+                        <h3>TLE DATA (LATEST)</h3>
+                    </div>
+                    <div class="tle-code-box">
+                        <code>1 40697U 15028A   25151.52345678  .00000023  00000-0  21800-4 0  9993<br>2 40697  98.6201 102.1523 0001420  87.3712 178.5204 14.30825412512341</code>
+                    </div>
+                </div>
+
+                <!-- CONSTELLATION STATUS -->
+                <div class="smc-card constellation-card">
+                    <div class="smc-card-header">
+                        <h3>CONSTELLATION STATUS</h3>
+                    </div>
+                    <div class="constellation-grid">
+                        <div class="constellation-sat active">
+                            <span class="const-name">Sentinel-2A</span>
+                            <span class="const-state text-green">● Online</span>
+                        </div>
+                        <div class="constellation-sat">
+                            <span class="const-name">Sentinel-2B</span>
+                            <span class="const-state text-green">● Online</span>
+                        </div>
+                        <div class="constellation-sat">
+                            <span class="const-name">Sentinel-2C</span>
+                            <span class="const-state text-green">● Online</span>
+                        </div>
+                        <div class="constellation-sat">
+                            <span class="const-name">Sentinel-2D</span>
+                            <span class="const-state text-green">● Online</span>
+                        </div>
+                        <div class="constellation-sat">
+                            <span class="const-name">Sentinel-2E</span>
+                            <span class="const-state text-yellow">● Degraded</span>
+                        </div>
+                        <div class="constellation-sat">
+                            <span class="const-name">Sentinel-2F</span>
+                            <span class="const-state text-green">● Online</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="satellite.js"></script>
+</body>
+</html>

@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIKRAM-1 / FALCON 9 LAUNCH DASHBOARD — Real-Time Launch Monitoring</title>
+    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@500;600;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="launch-app">
+        <!-- TOP HEADER BAR WITH STAGES TIMELINE -->
+        <header class="main-header">
+            <div class="header-brand">
+                <div class="brand-logo-text">SPACEX <span class="sub-brand">/ SKYROOT</span></div>
+                <div class="header-title-box">
+                    <h1>LAUNCH DASHBOARD</h1>
+                    <span class="header-subtitle">REAL-TIME LAUNCH MONITORING</span>
+                </div>
+            </div>
+
+            <!-- Center Stage Progression Stepper Timeline -->
+            <div class="stage-stepper-container">
+                <div class="stage-step active" data-stage="startup">
+                    <div class="step-dot"></div>
+                    <span class="step-label">STARTUP</span>
+                </div>
+                <div class="stage-connector"></div>
+                <div class="stage-step" data-stage="ignition">
+                    <div class="step-dot"></div>
+                    <span class="step-label">ENGINE IGNITION</span>
+                </div>
+                <div class="stage-connector"></div>
+                <div class="stage-step" data-stage="liftoff">
+                    <div class="step-dot"></div>
+                    <span class="step-label">LIFTOFF</span>
+                </div>
+                <div class="stage-connector"></div>
+                <div class="stage-step" data-stage="maxq">
+                    <div class="step-dot"></div>
+                    <span class="step-label">MAX Q</span>
+                </div>
+                <div class="stage-connector"></div>
+                <div class="stage-step" data-stage="boostback">
+                    <div class="step-dot"></div>
+                    <span class="step-label">BOOSTBACK</span>
+                </div>
+                <div class="stage-connector"></div>
+                <div class="stage-step" data-stage="meco">
+                    <div class="step-dot"></div>
+                    <span class="step-label">MECO</span>
+                </div>
+                <div class="stage-connector"></div>
+                <div class="stage-step" data-stage="fairing">
+                    <div class="step-dot"></div>
+                    <span class="step-label">FAIRING SEP</span>
+                </div>
+                <div class="stage-connector"></div>
+                <div class="stage-step" data-stage="seco">
+                    <div class="step-dot"></div>
+                    <span class="step-label">SECO</span>
+                </div>
+                <div class="stage-connector"></div>
+                <div class="stage-step" data-stage="deploy">
+                    <div class="step-dot"></div>
+                    <span class="step-label">PAYLOAD DEPLOY</span>
+                </div>
+            </div>
+
+            <!-- Header Right: UTC Clock & Mission Control Status -->
+            <div class="header-right-meta">
+                <div class="header-clock">
+                    <span class="clock-label">UTC</span>
+                    <strong id="topUtcTime">16:16:53</strong>
+                    <span class="clock-date" id="topUtcDate">May 31, 2025</span>
+                </div>
+                <div class="header-mc-status">
+                    <div class="mc-icon">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#22c55e" stroke-width="2">
+                            <path d="M2 20h.01" />
+                            <path d="M7 20v-4" />
+                            <path d="M12 20v-8" />
+                            <path d="M17 20V4" />
+                        </svg>
+                    </div>
+                    <div class="mc-text">
+                        <span class="mc-title">MISSION CONTROL</span>
+                        <strong class="mc-val text-green" id="topConnectionStatus">CONNECTED</strong>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN LAYOUT BODY -->
+        <div class="dashboard-body-grid">
+
+            <!-- ==============================================
+                 LEFT SIDEBAR: VEHICLE INFO, COUNTDOWN & CONTROLS
+                 ============================================== -->
+            <aside class="left-sidebar">
+                <!-- Vehicle & Mission Tag -->
+                <div class="sidebar-vehicle-card">
+                    <div class="vehicle-name">FALCON 9 <span class="alt-name">/ VIKRAM-1</span></div>
+                    <div class="mission-name">STARLINK 6-65</div>
+
+                    <div class="mission-status-pill" id="launchStatusPill">
+                        <span class="status-lbl">STATUS</span>
+                        <strong class="status-val" id="launchStatusText">GO FOR LAUNCH</strong>
+                    </div>
+
+                    <!-- Countdown Box -->
+                    <div class="sidebar-countdown-box">
+                        <div class="countdown-digits" id="sidebarCountdown">
+                            <span class="t-minus">T-</span> <span id="cdHours">00</span>:<span
+                                id="cdMins">00</span>:<span id="cdSecs" class="text-green">07</span>
+                        </div>
+                        <span class="countdown-tag">COUNTDOWN</span>
+                    </div>
+
+                    <div class="liftoff-meta">
+                        <span class="meta-lbl">TARGET LIFTOFF</span>
+                        <span class="meta-val">MAY 31, 2025 | 12:17:00 PM EDT</span>
+                    </div>
+                </div>
+
+                <!-- Navigation List -->
+                <nav class="sidebar-nav">
+                    <button class="nav-item active" data-nav="overview">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        OVERVIEW
+                    </button>
+                    <button class="nav-item" data-nav="vehicle">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
+                            <path
+                                d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
+                            <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
+                            <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
+                        </svg>
+                        VEHICLE
+                    </button>
+                    <button class="nav-item" data-nav="trajectory">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M3 3v18h18" />
+                            <path d="m19 9-5 5-4-4-3 3" />
+                        </svg>
+                        TRAJECTORY
+                    </button>
+                    <button class="nav-item" data-nav="telemetry">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="18" y1="20" x2="18" y2="10" />
+                            <line x1="12" y1="20" x2="12" y2="4" />
+                            <line x1="6" y1="20" x2="6" y2="14" />
+                        </svg>
+                        TELEMETRY
+                    </button>
+                    <button class="nav-item" data-nav="weather">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
+                        </svg>
+                        WEATHER
+                    </button>
+                    <button class="nav-item" data-nav="payload">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                        </svg>
+                        PAYLOAD
+                    </button>
+                    <button class="nav-item" data-nav="systems">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="3" />
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                        </svg>
+                        SYSTEMS
+                    </button>
+                    <button class="nav-item" data-nav="logs">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                        </svg>
+                        LOGS
+                    </button>
+                </nav>
+
+                <!-- Mission Control Action Buttons -->
+                <div class="sidebar-actions-card">
+                    <button id="btnStartMission" class="btn-launch-main">▶ START FULL MISSION</button>
+                    <button id="btnStopMission" class="btn-abort-main">⏹ EMERGENCY STOP</button>
+                    <div class="action-btn-row">
+                        <button id="btnResetSystem" class="btn-sm-action">↺ RESET</button>
+                        <button id="btnSatStatus" class="btn-sm-action sat-btn">🛰️ SATELLITE STATUS</button>
+                    </div>
+                </div>
+
+                <!-- Timing Settings (Collapsible Drawer) -->
+                <div class="sidebar-settings-accordion">
+                    <div class="settings-accordion-header" id="btnToggleSettings">
+                        <span>⚙️ MISSION TIMING CONFIG</span>
+                        <span class="chevron">▾</span>
+                    </div>
+                    <div class="settings-accordion-body" id="settingsBody">
+                        <div class="setting-row">
+                            <label>Countdown (s)</label>
+                            <input type="range" id="countdownTime" min="3" max="30" value="7">
+                            <span id="countdownTimeValue" class="val-txt">7s</span>
+                        </div>
+                        <div class="setting-row">
+                            <label>Launch Duration (s)</label>
+                            <input type="range" id="launchDuration" min="2" max="20" value="5">
+                            <span id="launchDurationValue" class="val-txt">5s</span>
+                        </div>
+                        <div class="setting-row">
+                            <label>Hold Peak (s)</label>
+                            <input type="range" id="holdTime" min="1" max="15" value="3">
+                            <span id="holdTimeValue" class="val-txt">3s</span>
+                        </div>
+                        <div class="setting-row">
+                            <label>Orbit Duration (s)</label>
+                            <input type="range" id="orbitDuration" min="5" max="60" value="15">
+                            <span id="orbitDurationValue" class="val-txt">15s</span>
+                        </div>
+                        <div class="setting-row">
+                            <label>Return Duration (s)</label>
+                            <input type="range" id="returnDuration" min="2" max="20" value="5">
+                            <span id="returnDurationValue" class="val-txt">5s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Range Location Card -->
+                <div class="sidebar-range-card">
+                    <div class="range-header">
+                        <h3>RANGE</h3>
+                    </div>
+                    <div class="range-details">
+                        <div class="range-name">Eastern Range / SDSC SHAR</div>
+                        <div class="range-loc">LC-40, Cape Canaveral / Sriharikota</div>
+                    </div>
+                    <div class="range-minimap">
+                        <canvas id="rangeMapCanvas" width="220" height="90"></canvas>
+                        <div class="range-beacon-dot"></div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- ==============================================
+                 MAIN CONTENT: HERO LAUNCH FEED, METRICS, GRAPHS
+                 ============================================== -->
+            <main class="main-dashboard-content">
+
+                <!-- TOP HERO SECTION: LIVE LAUNCH FEED + VEHICLE/WEATHER/TRAJECTORY -->
+                <div class="hero-section-grid">
+
+                    <!-- CENTER HERO: LIVE LAUNCH VIEWPORT -->
+                    <div class="launch-hero-card">
+                        <div class="launch-feed-container" id="vizArea">
+                            <!-- Background starfield / space canvas -->
+                            <canvas id="starsCanvas" class="stars-canvas"></canvas>
+
+                            <!-- Live Tag -->
+                            <div class="live-feed-badge">
+                                <span class="feed-live-dot"></span> LIVE
+                            </div>
+
+                            <!-- Launch Gantry / Tower Visual Structure -->
+                            <div class="gantry-tower-left"></div>
+                            <div class="gantry-water-tower">
+                                <div class="wt-tank">VIKRAM</div>
+                                <div class="wt-legs"></div>
+                            </div>
+                            <div class="gantry-tower-right">
+                                <div class="crane-arm"></div>
+                            </div>
+
+                            <!-- ROCKET LAUNCH SCENE -->
+                            <div id="rocketScene" class="rocket-scene">
+                                <div class="scene-label" id="rocketSceneLabel"></div>
+                                <div class="launch-platform"></div>
+                                <div id="rocketContainer" class="rocket-container">
+                                    <div class="rocket">
+                                        <div class="rocket-nose"></div>
+                                        <div class="rocket-body">
+                                            <div class="rocket-window"></div>
+                                            <div class="rocket-label">FALCON 9</div>
+                                        </div>
+                                        <div class="rocket-fin-left"></div>
+                                        <div class="rocket-fin-right"></div>
+                                        <div id="flameContainer" class="flame-container">
+                                            <div class="flame flame-1"></div>
+                                            <div class="flame flame-2"></div>
+                                            <div class="flame flame-3"></div>
+                                        </div>
+                                        <div id="smokeContainer" class="smoke-container"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SATELLITE ORBIT SCENE (FOR SPLIT-SCREEN OR DEPLOYMENT) -->
+                            <div id="satelliteScene" class="satellite-scene" style="display: none;">
+                                <div class="scene-label" id="satelliteSceneLabel">🛰️ SATELLITE ORBIT</div>
+                                <div class="orbit-path"></div>
+                                <div class="earth">
+                                    <div class="earth-surface"></div>
+                                </div>
+                                <div id="satelliteArm" class="satellite-arm">
+                                    <div class="satellite">
+                                        <div class="solar-panel-left"></div>
+                                        <div class="sat-body"></div>
+                                        <div class="solar-panel-right"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Countdown Fullscreen Overlay (Integrated) -->
+                            <div id="countdownOverlay" class="countdown-overlay" style="display: none;">
+                                <div id="countdownNumber" class="countdown-number">07</div>
+                            </div>
+
+                            <!-- BOTTOM OVERLAY HUD BAR ON LIVE FEED -->
+                            <div class="feed-hud-overlay">
+                                <div class="hud-item">
+                                    <span class="hud-lbl">SPEED</span>
+                                    <strong class="hud-val" id="feedSpeed">0</strong>
+                                    <span class="hud-unit">KM/H</span>
+                                </div>
+                                <div class="hud-item">
+                                    <span class="hud-lbl">ALTITUDE</span>
+                                    <strong class="hud-val" id="feedAltitude">0.0</strong>
+                                    <span class="hud-unit">KM</span>
+                                </div>
+
+                                <div class="hud-center-mission">
+                                    <span class="hud-stage-title">STAGE 1 TELEMETRY</span>
+                                    <div class="hud-t-timer" id="feedTTimer">T+ 00:00:07</div>
+                                    <span class="hud-flight-state" id="feedFlightState">LIFTOFF</span>
+                                </div>
+
+                                <div class="hud-item">
+                                    <span class="hud-lbl">G-FORCE</span>
+                                    <strong class="hud-val" id="feedGForce">1.2</strong>
+                                    <span class="hud-unit">G</span>
+                                </div>
+                                <div class="hud-item">
+                                    <span class="hud-lbl">VELOCITY</span>
+                                    <strong class="hud-val" id="feedVelocity">0.0</strong>
+                                    <span class="hud-unit">KM/S</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN TOP CARDS (VEHICLE OVERVIEW + WEATHER + TRAJECTORY) -->
+                    <div class="hero-right-col">
+
+                        <!-- VEHICLE OVERVIEW CARD -->
+                        <div class="dash-card vehicle-overview-card">
+                            <div class="dash-card-header">
+                                <h3>VEHICLE OVERVIEW</h3>
+                            </div>
+                            <div class="vehicle-specs-layout">
+                                <!-- Rocket Blueprint Diagram -->
+                                <div class="rocket-schematic-wrapper">
+                                    <div class="schematic-rocket">
+                                        <div class="schem-fairing"><span class="schem-tag">PAYLOAD</span></div>
+                                        <div class="schem-stage2"><span class="schem-tag">SECOND STAGE<br>MERLIN 1D /
+                                                RAMAN</span></div>
+                                        <div class="schem-stage1"><span class="schem-tag">FIRST STAGE<br>MERLIN 1D (9) /
+                                                KALAM</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- Specs Table -->
+                                <div class="vehicle-specs-data">
+                                    <div class="spec-row">
+                                        <span class="s-lbl">VEHICLE</span>
+                                        <strong class="s-val">Falcon 9 Block 5 / Vikram-1</strong>
+                                    </div>
+                                    <div class="spec-row">
+                                        <span class="s-lbl">HEIGHT</span>
+                                        <strong class="s-val">70 m / 229.6 ft</strong>
+                                    </div>
+                                    <div class="spec-row">
+                                        <span class="s-lbl">DIAMETER</span>
+                                        <strong class="s-val">3.7 m / 12 ft</strong>
+                                    </div>
+                                    <div class="spec-row">
+                                        <span class="s-lbl">MASS</span>
+                                        <strong class="s-val">549,054 kg</strong>
+                                    </div>
+                                    <div class="spec-row">
+                                        <span class="s-lbl">PAYLOAD</span>
+                                        <strong class="s-val">Starlink 6-65 (22 Satellites)</strong>
+                                    </div>
+                                    <div class="spec-row">
+                                        <span class="s-lbl">DESTINATION</span>
+                                        <strong class="s-val">Low Earth Orbit (LEO)</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- WEATHER CARD -->
+                        <div class="dash-card weather-card">
+                            <div class="dash-card-header">
+                                <h3>WEATHER</h3>
+                            </div>
+                            <div class="weather-grid">
+                                <div class="weather-icon-box">
+                                    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#e2e8f0"
+                                        stroke-width="1.5">
+                                        <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
+                                    </svg>
+                                </div>
+                                <div class="weather-temp-box">
+                                    <span class="temp-val">79°F</span>
+                                    <span class="temp-sub">26°C</span>
+                                    <span class="weather-desc">SCATTERED CLOUDS</span>
+                                </div>
+                                <div class="weather-metrics-list">
+                                    <div class="w-row"><span>WIND</span> <strong>18 mph (NE)</strong></div>
+                                    <div class="w-row"><span>HUMIDITY</span> <strong>74%</strong></div>
+                                    <div class="w-row"><span>PRESSURE</span> <strong>29.92 inHg</strong></div>
+                                    <div class="w-row"><span>VISIBILITY</span> <strong>10 mi</strong></div>
+                                </div>
+                                <div class="weather-go-status">
+                                    <span>LAUNCH WEATHER</span>
+                                    <strong class="text-green">GO</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- FLIGHT TRAJECTORY CARD -->
+                        <div class="dash-card flight-trajectory-card">
+                            <div class="dash-card-header">
+                                <h3>FLIGHT TRAJECTORY</h3>
+                            </div>
+                            <div class="trajectory-canvas-wrapper">
+                                <canvas id="flightTrajectoryCanvas" width="460" height="120"></canvas>
+                                <div class="trajectory-milestones">
+                                    <span class="m-point liftoff active"><span class="m-dot green"></span>
+                                        LIFTOFF</span>
+                                    <span class="m-point maxq"><span class="m-dot"></span> MAX Q</span>
+                                    <span class="m-point meco"><span class="m-dot"></span> MECO</span>
+                                    <span class="m-point seco"><span class="m-dot"></span> SECO</span>
+                                    <span class="m-point deploy"><span class="m-dot"></span> PAYLOAD DEPLOY</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==============================================
+                     MIDDLE ROW: TELEMETRY GAUGES, SYSTEMS & ENGINES
+                     ============================================== -->
+                <div class="middle-section-grid">
+
+                    <!-- 1. STAGE 1 TELEMETRY CIRCULAR GAUGES -->
+                    <div class="dash-card gauges-card">
+                        <div class="dash-card-header">
+                            <h3>STAGE 1 TELEMETRY</h3>
+                            <a href="javascript:void(0)" class="header-link">»</a>
+                        </div>
+                        <div class="radial-gauges-grid">
+                            <!-- Gauge 1: Speed -->
+                            <div class="radial-gauge-item">
+                                <div class="gauge-dial">
+                                    <svg viewBox="0 0 100 100" class="gauge-svg">
+                                        <circle cx="50" cy="50" r="42" class="gauge-bg-ring" />
+                                        <circle cx="50" cy="50" r="42" class="gauge-fill-ring" id="gaugeRingSpeed" />
+                                    </svg>
+                                    <div class="gauge-center-text">
+                                        <strong id="dialSpeed">0</strong>
+                                        <span>KM/H</span>
+                                    </div>
+                                </div>
+                                <span class="gauge-title">SPEED</span>
+                            </div>
+
+                            <!-- Gauge 2: Altitude -->
+                            <div class="radial-gauge-item">
+                                <div class="gauge-dial">
+                                    <svg viewBox="0 0 100 100" class="gauge-svg">
+                                        <circle cx="50" cy="50" r="42" class="gauge-bg-ring" />
+                                        <circle cx="50" cy="50" r="42" class="gauge-fill-ring" id="gaugeRingAltitude" />
+                                    </svg>
+                                    <div class="gauge-center-text">
+                                        <strong id="dialAltitude">0.0</strong>
+                                        <span>KM</span>
+                                    </div>
+                                </div>
+                                <span class="gauge-title">ALTITUDE</span>
+                            </div>
+
+                            <!-- Gauge 3: Velocity -->
+                            <div class="radial-gauge-item">
+                                <div class="gauge-dial">
+                                    <svg viewBox="0 0 100 100" class="gauge-svg">
+                                        <circle cx="50" cy="50" r="42" class="gauge-bg-ring" />
+                                        <circle cx="50" cy="50" r="42" class="gauge-fill-ring" id="gaugeRingVelocity" />
+                                    </svg>
+                                    <div class="gauge-center-text">
+                                        <strong id="dialVelocity">0.0</strong>
+                                        <span>KM/S</span>
+                                    </div>
+                                </div>
+                                <span class="gauge-title">VELOCITY</span>
+                            </div>
+
+                            <!-- Gauge 4: G-Force -->
+                            <div class="radial-gauge-item">
+                                <div class="gauge-dial">
+                                    <svg viewBox="0 0 100 100" class="gauge-svg">
+                                        <circle cx="50" cy="50" r="42" class="gauge-bg-ring" />
+                                        <circle cx="50" cy="50" r="42" class="gauge-fill-ring" id="gaugeRingGForce" />
+                                    </svg>
+                                    <div class="gauge-center-text">
+                                        <strong id="dialGForce">1.2</strong>
+                                        <span>G</span>
+                                    </div>
+                                </div>
+                                <span class="gauge-title">G-FORCE</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. SYSTEMS STATUS CHECKLIST -->
+                    <div class="dash-card systems-status-card">
+                        <div class="dash-card-header">
+                            <h3>SYSTEMS STATUS</h3>
+                        </div>
+                        <div class="systems-checklist-grid">
+                            <div class="sys-item">
+                                <span class="sys-dot green"></span>
+                                <div class="sys-info">
+                                    <span class="sys-name">PROPULSION</span>
+                                    <strong class="sys-state text-green">NOMINAL</strong>
+                                </div>
+                            </div>
+                            <div class="sys-item">
+                                <span class="sys-dot green"></span>
+                                <div class="sys-info">
+                                    <span class="sys-name">GUIDANCE</span>
+                                    <strong class="sys-state text-green">NOMINAL</strong>
+                                </div>
+                            </div>
+                            <div class="sys-item">
+                                <span class="sys-dot green"></span>
+                                <div class="sys-info">
+                                    <span class="sys-name">LOX</span>
+                                    <strong class="sys-state text-green">NOMINAL</strong>
+                                </div>
+                            </div>
+                            <div class="sys-item">
+                                <span class="sys-dot green"></span>
+                                <div class="sys-info">
+                                    <span class="sys-name">TELEMETRY</span>
+                                    <strong class="sys-state text-green">NOMINAL</strong>
+                                </div>
+                            </div>
+                            <div class="sys-item">
+                                <span class="sys-dot green"></span>
+                                <div class="sys-info">
+                                    <span class="sys-name">FUEL</span>
+                                    <strong class="sys-state text-green">NOMINAL</strong>
+                                </div>
+                            </div>
+                            <div class="sys-item">
+                                <span class="sys-dot green"></span>
+                                <div class="sys-info">
+                                    <span class="sys-name">ELECTRICAL</span>
+                                    <strong class="sys-state text-green">NOMINAL</strong>
+                                </div>
+                            </div>
+                            <div class="sys-item">
+                                <span class="sys-dot green"></span>
+                                <div class="sys-info">
+                                    <span class="sys-name">AVIONICS</span>
+                                    <strong class="sys-state text-green">NOMINAL</strong>
+                                </div>
+                            </div>
+                            <div class="sys-item">
+                                <span class="sys-dot green"></span>
+                                <div class="sys-info">
+                                    <span class="sys-name">FLIGHT TERMINATION</span>
+                                    <strong class="sys-state text-green">NOMINAL</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. ENGINE STATUS (9 MERLIN ENGINES CLUSTER) -->
+                    <div class="dash-card engine-status-card">
+                        <div class="dash-card-header">
+                            <h3>ENGINE STATUS</h3>
+                            <span class="header-sub-tag">MERLIN 1D (9)</span>
+                        </div>
+                        <div class="engine-layout">
+                            <!-- 3x3 Engine Clusters -->
+                            <div class="engine-circles-grid">
+                                <div class="eng-node active"><span class="eng-pct">100%</span></div>
+                                <div class="eng-node active"><span class="eng-pct">100%</span></div>
+                                <div class="eng-node active"><span class="eng-pct">100%</span></div>
+                                <div class="eng-node active"><span class="eng-pct">100%</span></div>
+                                <div class="eng-node active eng-center"><span class="eng-pct">100%</span></div>
+                                <div class="eng-node active"><span class="eng-pct">100%</span></div>
+                                <div class="eng-node active"><span class="eng-pct">100%</span></div>
+                                <div class="eng-node active"><span class="eng-pct">100%</span></div>
+                                <div class="eng-node active"><span class="eng-pct">100%</span></div>
+                            </div>
+
+                            <!-- Engine Telemetry Stats -->
+                            <div class="engine-stats-col">
+                                <div class="e-stat">
+                                    <span class="e-lbl">THRUST</span>
+                                    <strong class="e-val" id="engineThrustVal">0 kN</strong>
+                                </div>
+                                <div class="e-stat">
+                                    <span class="e-lbl">CHAMBER PRESSURE</span>
+                                    <strong class="e-val" id="enginePressureVal">0 bar</strong>
+                                </div>
+                                <div class="e-stat">
+                                    <span class="e-lbl">ISP</span>
+                                    <strong class="e-val">282 sec</strong>
+                                </div>
+                                <div class="e-stat">
+                                    <span class="e-lbl">ENGINE STATUS</span>
+                                    <strong class="e-val text-green">NOMINAL</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. LIVE TELEMETRY GRAPHS (4 SPARKLINE CHARTS) -->
+                    <div class="dash-card live-graphs-card">
+                        <div class="dash-card-header">
+                            <h3>TELEMETRY GRAPHS</h3>
+                            <div class="graph-header-meta">
+                                <span class="graph-live-tag">● LIVE</span>
+                                <span class="graph-time-sel">1 MIN ▾</span>
+                            </div>
+                        </div>
+                        <div class="telemetry-sparklines-grid">
+                            <!-- Graph 1: Speed -->
+                            <div class="spark-box">
+                                <div class="spark-title-row">
+                                    <span>SPEED (KM/H)</span>
+                                </div>
+                                <canvas id="sparkSpeedCanvas" width="160" height="42"></canvas>
+                            </div>
+
+                            <!-- Graph 2: Altitude -->
+                            <div class="spark-box">
+                                <div class="spark-title-row">
+                                    <span>ALTITUDE (KM)</span>
+                                </div>
+                                <canvas id="sparkAltitudeCanvas" width="160" height="42"></canvas>
+                            </div>
+
+                            <!-- Graph 3: Velocity -->
+                            <div class="spark-box">
+                                <div class="spark-title-row">
+                                    <span>VELOCITY (KM/S)</span>
+                                </div>
+                                <canvas id="sparkVelocityCanvas" width="160" height="42"></canvas>
+                            </div>
+
+                            <!-- Graph 4: G-Force -->
+                            <div class="spark-box">
+                                <div class="spark-title-row">
+                                    <span>G-FORCE (G)</span>
+                                </div>
+                                <canvas id="sparkGForceCanvas" width="160" height="42"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==============================================
+                     BOTTOM ROW: EVENT LOG, COMMS, MISSION DETAILS, PAYLOAD
+                     ============================================== -->
+                <div class="bottom-section-grid">
+
+                    <!-- 1. EVENT LOG -->
+                    <div class="dash-card event-log-card">
+                        <div class="dash-card-header">
+                            <h3>EVENT LOG</h3>
+                        </div>
+                        <table class="event-log-table">
+                            <thead>
+                                <tr>
+                                    <th>TIME (EDT)</th>
+                                    <th>EVENT</th>
+                                    <th>STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="eventLogTbody">
+                                <tr>
+                                    <td>12:16:53 PM</td>
+                                    <td>Startup Sequence Initiated</td>
+                                    <td class="text-green">COMPLETE</td>
+                                </tr>
+                                <tr>
+                                    <td>12:16:58 PM</td>
+                                    <td>Engine Ignition</td>
+                                    <td class="text-green">COMPLETE</td>
+                                </tr>
+                                <tr>
+                                    <td>12:17:00 PM</td>
+                                    <td>Liftoff</td>
+                                    <td class="text-green">SUCCESS</td>
+                                </tr>
+                                <tr>
+                                    <td>12:17:07 PM</td>
+                                    <td>Vehicle Clearing Tower</td>
+                                    <td class="text-green">SUCCESS</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 2. RECENT COMMUNICATIONS -->
+                    <div class="dash-card comms-card">
+                        <div class="dash-card-header">
+                            <h3>RECENT COMMUNICATIONS</h3>
+                        </div>
+                        <div class="comms-stream-list" id="commsStreamList">
+                            <div class="comm-line">
+                                <span class="c-time">12:16:51 PM</span>
+                                <span class="c-callsign">SPACEX FLIGHT</span>
+                                <span class="c-msg">Falcon 9, you are go for launch.</span>
+                                <span class="c-audio-icon">🔊</span>
+                            </div>
+                            <div class="comm-line">
+                                <span class="c-time">12:16:53 PM</span>
+                                <span class="c-callsign">F9</span>
+                                <span class="c-msg">Copy, go for launch.</span>
+                                <span class="c-audio-icon">🔊</span>
+                            </div>
+                            <div class="comm-line">
+                                <span class="c-time">12:16:58 PM</span>
+                                <span class="c-callsign">SPACEX FLIGHT</span>
+                                <span class="c-msg">Ignition and liftoff.</span>
+                                <span class="c-audio-icon">🔊</span>
+                            </div>
+                            <div class="comm-line">
+                                <span class="c-time">12:17:00 PM</span>
+                                <span class="c-callsign">F9</span>
+                                <span class="c-msg">Liftoff confirmed.</span>
+                                <span class="c-audio-icon">🔊</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. MISSION DETAILS -->
+                    <div class="dash-card mission-details-card">
+                        <div class="dash-card-header">
+                            <h3>MISSION DETAILS</h3>
+                        </div>
+                        <div class="mission-details-grid">
+                            <div class="md-item">
+                                <span class="md-lbl">MISSION</span>
+                                <strong class="md-val">Starlink 6-65</strong>
+                            </div>
+                            <div class="md-item">
+                                <span class="md-lbl">ORBIT</span>
+                                <strong class="md-val">Low Earth Orbit (LEO)</strong>
+                            </div>
+                            <div class="md-item">
+                                <span class="md-lbl">MISSION ID</span>
+                                <strong class="md-val">SL-6-65</strong>
+                            </div>
+                            <div class="md-item">
+                                <span class="md-lbl">INCLINATION</span>
+                                <strong class="md-val">53.0°</strong>
+                            </div>
+                            <div class="md-item">
+                                <span class="md-lbl">CUSTOMER</span>
+                                <strong class="md-val">SpaceX</strong>
+                            </div>
+                            <div class="md-item">
+                                <span class="md-lbl">LAUNCH VEHICLE</span>
+                                <strong class="md-val">Falcon 9 Block 5</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. PAYLOAD CARD -->
+                    <div class="dash-card payload-card">
+                        <div class="dash-card-header">
+                            <h3>PAYLOAD</h3>
+                        </div>
+                        <div class="payload-layout">
+                            <div class="payload-graphic-wrapper">
+                                <div class="starlink-stack-graphic">
+                                    <div class="sat-layer"></div>
+                                    <div class="sat-layer"></div>
+                                    <div class="sat-layer"></div>
+                                    <div class="sat-layer"></div>
+                                    <div class="sat-layer"></div>
+                                </div>
+                            </div>
+                            <div class="payload-specs">
+                                <div class="payload-headline">STARLINK 6-65</div>
+                                <div class="p-spec"><span class="p-lbl">SATELLITES</span> <strong>22</strong></div>
+                                <div class="p-spec"><span class="p-lbl">MASS</span> <strong>15,600 kg</strong></div>
+                                <div class="p-spec"><span class="p-lbl">DEPLOYMENT</span> <strong>~ 65 min after
+                                        liftoff</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- ==============================================
+         SATELLITE MISSION CONTROL MODAL (RETAINED & UPGRADED)
+         ============================================== -->
+    <div id="satModalOverlay" class="sat-modal-overlay" style="display: none;">
+        <div class="smc-dashboard">
+            <header class="smc-header">
+                <div class="smc-header-left">
+                    <div class="smc-logo-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                        </svg>
+                    </div>
+                    <div class="smc-brand">
+                        <h1>SATELLITE MISSION CONTROL</h1>
+                        <span class="smc-subbrand">REAL-TIME SATELLITE MONITORING DASHBOARD</span>
+                    </div>
+                    <div class="smc-live-badge"><span class="live-dot"></span> LIVE</div>
+                    <div class="smc-utc-clock">
+                        <span class="utc-time" id="smcUtcTime">UTC 12:37:21</span>
+                        <span class="utc-date" id="smcUtcDate">31 May 2025</span>
+                    </div>
+                </div>
+                <nav class="smc-nav-tabs">
+                    <button class="smc-tab active">DASHBOARD</button>
+                    <button class="smc-tab">SATELLITES</button>
+                    <button class="smc-tab">GROUND STATIONS</button>
+                    <button class="smc-tab">DATA & IMAGES</button>
+                    <button class="smc-tab">ALERTS <span class="tab-badge">3</span></button>
+                    <button class="smc-tab">SETTINGS</button>
+                </nav>
+                <div class="smc-header-right">
+                    <button id="btnCloseSatModal" class="btn-close-smc">✕</button>
+                </div>
+            </header>
+            <div class="smc-main-container">
+                <!-- Inner SMC Dashboard Content -->
+                <div class="smc-top-grid">
+                    <div class="smc-col smc-col-left">
+                        <div class="smc-card sat-info-card">
+                            <div class="smc-card-header">
+                                <h3>SATELLITE INFORMATION</h3>
+                            </div>
+                            <div class="sat-visual-banner"><span class="badge-operational">OPERATIONAL</span></div>
+                            <div class="sat-headline">
+                                <h2>Sentinel-2A <span class="sat-subname">/ VIKRAM-SAT</span></h2>
+                            </div>
+                            <table class="sat-info-table">
+                                <tr>
+                                    <td>NORAD ID</td>
+                                    <td>40697</td>
+                                </tr>
+                                <tr>
+                                    <td>Operator</td>
+                                    <td>ESA / ISRO</td>
+                                </tr>
+                                <tr>
+                                    <td>Orbit Type</td>
+                                    <td>Sun-synchronous</td>
+                                </tr>
+                                <tr>
+                                    <td>Altitude</td>
+                                    <td id="smcInfoAlt">786 km</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="smc-col smc-col-center">
+                        <div class="smc-card globe-card">
+                            <div class="smc-card-header">
+                                <h3>LIVE SATELLITE TRACKING</h3>
+                            </div>
+                            <div class="globe-viewport-container">
+                                <canvas id="smc3DGlobeCanvas" width="620" height="340"></canvas>
+                            </div>
+                        </div>
+                        <div class="smc-middle-subgrid">
+                            <div class="smc-card ground-track-card">
+                                <div class="smc-card-header">
+                                    <h3>GROUND TRACK</h3>
+                                </div>
+                                <div class="ground-track-container">
+                                    <canvas id="smc2DTrackCanvas" width="580" height="250"></canvas>
+                                </div>
+                            </div>
+                            <div class="smc-card telemetry-history-card">
+                                <div class="smc-card-header">
+                                    <h3>TELEMETRY HISTORY</h3>
+                                </div>
+                                <div class="history-charts-stack">
+                                    <canvas id="chartBatCanvas" width="270" height="30"></canvas>
+                                    <canvas id="chartTempCanvas" width="270" height="30"></canvas>
+                                    <canvas id="chartSolarCanvas" width="270" height="30"></canvas>
+                                    <canvas id="chartSigCanvas" width="270" height="30"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="smc-col smc-col-right">
+                        <div class="smc-card real-telemetry-card">
+                            <div class="smc-card-header">
+                                <h3>REAL-TIME TELEMETRY</h3>
+                            </div>
+                            <div class="telemetry-widgets-grid">
+                                <div class="tele-widget"><span class="tele-lbl">BATTERY</span><strong
+                                        class="text-green">91%</strong></div>
+                                <div class="tele-widget"><span class="tele-lbl">SOLAR</span><strong
+                                        class="text-yellow">1.84 kW</strong></div>
+                                <div class="tele-widget"><span class="tele-lbl">POWER</span><strong
+                                        class="text-orange">1.23 kW</strong></div>
+                                <div class="tele-widget"><span class="tele-lbl">TEMP</span><strong class="text-red">28.4
+                                        °C</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="buzzerAudio" preload="auto"></audio>
+    <script src="script.js"></script>
+</body>
+
+</html>

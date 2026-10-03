@@ -1,0 +1,495 @@
+/*
+  ============================================================
+              VIKRAM-1 / KES SPACE MISSION
+              ESP32 UNIFIED MASTER CONTROLLER
+  ============================================================
+*/
+
+#include <WiFi.h>
+#include <WebServer.h>
+#include <LittleFS.h>
+
+// ============================================================
+// CONFIGURATION & PINS
+// ============================================================
+const char* AP_SSID     = "KES Space Mission";
+const char* AP_PASSWORD = "kes12345";
+
+const uint8_t BUZZER_PIN     = 15;
+const uint8_t RELAY_CW_PIN   = 26; // Motor Up (Lift)
+const uint8_t RELAY_CCW_PIN  = 27; // Motor Down (Return)
+const uint8_t RELAY_SAT_PIN  = 14; // Satellite Orbit Motor
+const uint8_t LED_PIN        = 2;  // Status LED
+
+WebServer server(80);
+
+// ============================================================
+// TIMINGS
+// ============================================================
+unsigned long FULL_TRAVEL_TIME = 5000;   // 5 seconds travel
+const unsigned long SHORT_BEEP_TIME  = 120;
+const unsigned long LONG_BEEP_TIME   = 1800;
+const unsigned long FINAL_BEEP_GAP   = 700;
+const unsigned long FINAL_BEEP_TIME  = 100;
+
+// ============================================================
+// MISSION STATES
+// ============================================================
+enum MissionState {
+  READY,
+  COUNTDOWN,
+  LAUNCHING,
+  PAUSED_LAUNCH,
+  HOLDING,
+  LANDING,
+  PAUSED_LANDING,
+  LANDED,
+  SATELLITE_ORBIT
+};
+
+MissionState state = READY;
+
+enum BuzzerPhase {
+  BUZZER_IDLE,
+  BUZZER_COUNTDOWN,
+  BUZZER_LONG,
+  BUZZER_GAP,
+  BUZZER_FINAL
+};
+
+BuzzerPhase buzzerPhase = BUZZER_IDLE;
+unsigned long buzzerStarted  = 0;
+unsigned long buzzerDuration = 0;
+
+int countdownValue = 0;
+unsigned long countdownStarted = 0;
+
+float rocketPosition = 0.0;
+unsigned long movementStarted = 0;
+float movementStartPosition = 0.0;
+float movementTargetPosition = 0.0;
+unsigned long movementDuration = 0;
+
+bool satelliteActive = false;
+float satelliteAngle = 0.0;
+float satelliteSpeed = 1.0;
+int satelliteDirection = 1;
+bool satellitePaused = false;
+unsigned long lastSatUpdate = 0;
+
+float teleSpeed = 0;
+float teleAltitude = 0;
+float teleVelocity = 0;
+float teleGForce = 1.0;
+int teleThrust = 0;
+
+// ============================================================
+// BUZZER ENGINE
+// ============================================================
+void startBuzzer(unsigned int frequency, unsigned long duration, BuzzerPhase phase) {
+  tone(BUZZER_PIN, frequency);
+  buzzerStarted = millis();
+  buzzerDuration = duration;
+  buzzerPhase = phase;
+}
+
+void stopBuzzer() {
+  noTone(BUZZER_PIN);
+  buzzerPhase = BUZZER_IDLE;
+  buzzerStarted = 0;
+  buzzerDuration = 0;
+}
+
+void updateBuzzer() {
+  if (buzzerPhase == BUZZER_IDLE) return;
+  if (millis() - buzzerStarted < buzzerDuration) return;
+
+  if (buzzerPhase == BUZZER_LONG) {
+    noTone(BUZZER_PIN);
+    Serial.println("LONG IGNITION BEEP FINISHED -> 700ms SILENT GAP");
+    buzzerStarted = millis();
+    buzzerDuration = FINAL_BEEP_GAP;
+    buzzerPhase = BUZZER_GAP;
+    return;
+  }
+
+  if (buzzerPhase == BUZZER_GAP) {
+    Serial.println("FINAL HIGH-PITCH BEEP");
+    startBuzzer(1800, FINAL_BEEP_TIME, BUZZER_FINAL);
+    return;
+  }
+
+  if (buzzerPhase == BUZZER_FINAL) {
+    noTone(BUZZER_PIN);
+    buzzerPhase = BUZZER_IDLE;
+    Serial.println("FINAL BEEP FINISHED -> GO! LIFTOFF & ASCENT");
+    startLaunchMovement();
+    return;
+  }
+
+  if (buzzerPhase == BUZZER_COUNTDOWN) {
+    noTone(BUZZER_PIN);
+    buzzerPhase = BUZZER_IDLE;
+    return;
+  }
+}
+
+// ============================================================
+// MOTOR CONTROL
+// ============================================================
+void motorStop() {
+  digitalWrite(RELAY_CW_PIN, LOW);
+  digitalWrite(RELAY_CCW_PIN, LOW);
+}
+
+void motorClockwise() {
+  motorStop();
+  delay(50);
+  digitalWrite(RELAY_CW_PIN, HIGH);
+  digitalWrite(RELAY_CCW_PIN, LOW);
+}
+
+void motorAnticlockwise() {
+  motorStop();
+  delay(50);
+  digitalWrite(RELAY_CW_PIN, LOW);
+  digitalWrite(RELAY_CCW_PIN, HIGH);
+}
+
+void satMotorOn() {
+  digitalWrite(RELAY_SAT_PIN, HIGH);
+}
+
+void satMotorOff() {
+  digitalWrite(RELAY_SAT_PIN, LOW);
+}
+
+void stopMovement() {
+  movementStarted = 0;
+  movementDuration = 0;
+  movementStartPosition = rocketPosition;
+  movementTargetPosition = rocketPosition;
+  motorStop();
+}
+
+void startLaunchMovement() {
+  if (rocketPosition >= 100.0) {
+    rocketPosition = 100.0;
+    state = HOLDING;
+    stopMovement();
+    return;
+  }
+
+  state = LAUNCHING;
+  teleThrust = 7607;
+  movementStartPosition = rocketPosition;
+  movementTargetPosition = 100.0;
+
+  unsigned long remaining = (unsigned long)(FULL_TRAVEL_TIME * ((100.0 - rocketPosition) / 100.0));
+  if (remaining < 1) remaining = 1;
+
+  movementDuration = remaining;
+  movementStarted = millis();
+
+  Serial.println("ROCKET ASCENT: MOTOR CW (LIFTING UP)");
+  motorClockwise();
+}
+
+void startLandingMovement() {
+  if (rocketPosition <= 0.0) {
+    rocketPosition = 0.0;
+    state = LANDED;
+    stopMovement();
+    return;
+  }
+
+  state = LANDING;
+  movementStartPosition = rocketPosition;
+  movementTargetPosition = 0.0;
+
+  unsigned long remaining = (unsigned long)(FULL_TRAVEL_TIME * (rocketPosition / 100.0));
+  if (remaining < 1) remaining = 1;
+
+  movementDuration = remaining;
+  movementStarted = millis();
+
+  Serial.println("ROCKET DESCENT: MOTOR CCW (COMING DOWN)");
+  motorAnticlockwise();
+}
+
+void updateMovement() {
+  if (state != LAUNCHING && state != LANDING) return;
+  if (movementStarted == 0) return;
+
+  unsigned long elapsed = millis() - movementStarted;
+  float progress = (float)elapsed / (float)movementDuration;
+
+  if (progress >= 1.0) {
+    rocketPosition = movementTargetPosition;
+    stopMovement();
+
+    if (state == LAUNCHING) {
+      state = HOLDING;
+      Serial.println("ROCKET AT TOP -> STARTING RETURN DESCENT");
+      delay(400);
+      startLandingMovement();
+    } else if (state == LANDING) {
+      state = SATELLITE_ORBIT;
+      satelliteActive = true;
+      teleThrust = 0;
+      satMotorOn();
+      Serial.println("ROCKET LANDED -> SATELLITE MOTOR ON");
+    }
+    return;
+  }
+
+  if (state == LAUNCHING) {
+    rocketPosition = movementStartPosition + ((100.0 - movementStartPosition) * progress);
+    teleAltitude = (rocketPosition / 100.0) * 78.5;
+    teleSpeed = (rocketPosition / 100.0) * 5600;
+    teleVelocity = (rocketPosition / 100.0) * 2.1;
+    teleGForce = 1.0 + sin(progress * 3.1415) * 2.4;
+  } else if (state == LANDING) {
+    rocketPosition = movementStartPosition - (movementStartPosition * progress);
+    teleAltitude = (rocketPosition / 100.0) * 78.5;
+    teleSpeed = (rocketPosition / 100.0) * 5600;
+    teleVelocity = (rocketPosition / 100.0) * 2.1;
+    teleGForce = 1.0 + sin(rocketPosition / 100.0 * 3.1415) * 1.5;
+  }
+}
+
+void updateCountdown() {
+  if (state != COUNTDOWN) return;
+  if (millis() - countdownStarted < 1000) return;
+
+  countdownStarted = millis();
+
+  if (countdownValue > 1) {
+    countdownValue--;
+    Serial.print("COUNTDOWN: ");
+    Serial.println(countdownValue);
+    startBuzzer(1200, SHORT_BEEP_TIME, BUZZER_COUNTDOWN);
+    return;
+  }
+
+  if (countdownValue == 1) {
+    countdownValue = 0;
+    Serial.println("COUNTDOWN: 1 -> LONG IGNITION BEEP (900Hz)");
+    startBuzzer(900, LONG_BEEP_TIME, BUZZER_LONG);
+    return;
+  }
+}
+
+void updateSatellite() {
+  if (!satelliteActive || satellitePaused) return;
+  if (millis() - lastSatUpdate < 30) return;
+  lastSatUpdate = millis();
+
+  satelliteAngle += (1.5 * satelliteSpeed * satelliteDirection);
+  if (satelliteAngle >= 360.0) satelliteAngle -= 360.0;
+  if (satelliteAngle < 0.0) satelliteAngle += 360.0;
+}
+
+const char* stateName() {
+  switch (state) {
+    case READY:           return "READY";
+    case COUNTDOWN:       return "COUNTDOWN";
+    case LAUNCHING:       return "LAUNCHING";
+    case PAUSED_LAUNCH:   return "PAUSED LAUNCH";
+    case HOLDING:         return "HOLDING";
+    case LANDING:         return "LANDING";
+    case PAUSED_LANDING:  return "PAUSED LANDING";
+    case LANDED:          return "LANDED";
+    case SATELLITE_ORBIT: return "SATELLITE_ORBIT";
+  }
+  return "UNKNOWN";
+}
+
+const char* directionName() {
+  switch (state) {
+    case LAUNCHING: return "CLOCKWISE";
+    case LANDING:   return "ANTICLOCKWISE";
+    default:        return "STOP";
+  }
+}
+
+// ============================================================
+// REST API
+// ============================================================
+void handleStatus() {
+  String json;
+  json.reserve(320);
+
+  json += "{";
+  json += "\"state\":\"" + String(stateName()) + "\",";
+  json += "\"position\":" + String(rocketPosition, 1) + ",";
+  json += "\"countdown\":" + String(countdownValue) + ",";
+  json += "\"direction\":\"" + String(directionName()) + "\",";
+  json += "\"speed\":" + String(teleSpeed, 0) + ",";
+  json += "\"altitude\":" + String(teleAltitude, 1) + ",";
+  json += "\"velocity\":" + String(teleVelocity, 1) + ",";
+  json += "\"gForce\":" + String(teleGForce, 1) + ",";
+  json += "\"thrust\":" + String(teleThrust) + ",";
+  json += "\"satState\":\"" + String(satelliteActive ? "ORBITING" : "OFF") + "\",";
+  json += "\"satAngle\":" + String(satelliteAngle, 1) + ",";
+  json += "\"satSpeed\":" + String(satelliteSpeed, 1) + ",";
+  json += "\"satDir\":\"" + String(satelliteDirection == 1 ? "PROGRADE" : "RETROGRADE") + "\"";
+  json += "}";
+
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.send(200, "application/json; charset=utf-8", json);
+}
+
+void handleCommand() {
+  if (!server.hasArg("cmd")) {
+    server.send(400, "text/plain; charset=utf-8", "Missing command");
+    return;
+  }
+
+  String command = server.arg("cmd");
+  Serial.print("COMMAND: ");
+  Serial.println(command);
+
+  if (command == "launch") {
+    if (state == READY || state == LANDED || state == SATELLITE_ORBIT) {
+      rocketPosition = 0.0;
+      countdownValue = 5;
+      state = COUNTDOWN;
+      countdownStarted = millis();
+      satelliteActive = false;
+      satMotorOff();
+      stopBuzzer();
+
+      startBuzzer(1200, SHORT_BEEP_TIME, BUZZER_COUNTDOWN);
+      server.sendHeader("Access-Control-Allow-Origin", "*");
+      server.send(200, "text/plain; charset=utf-8", "Launch sequence initiated");
+      return;
+    }
+    if (state == PAUSED_LAUNCH || state == PAUSED_LANDING) {
+      startLaunchMovement();
+      server.send(200, "text/plain; charset=utf-8", "Launch continued");
+      return;
+    }
+  }
+
+  if (command == "stop") {
+    if (state == COUNTDOWN) {
+      state = READY;
+      countdownValue = 0;
+      stopBuzzer();
+    } else if (state == LAUNCHING) {
+      state = PAUSED_LAUNCH;
+      stopMovement();
+    } else if (state == LANDING) {
+      state = PAUSED_LANDING;
+      stopMovement();
+    } else if (state == SATELLITE_ORBIT) {
+      satelliteActive = false;
+      satMotorOff();
+    }
+    server.send(200, "text/plain; charset=utf-8", "Stopped");
+    return;
+  }
+
+  if (command == "land") {
+    startLandingMovement();
+    server.send(200, "text/plain; charset=utf-8", "Landing started");
+    return;
+  }
+
+  if (command == "sat_speed" && server.hasArg("val")) {
+    satelliteSpeed = server.arg("val").toFloat();
+    server.send(200, "text/plain; charset=utf-8", "Satellite speed set");
+    return;
+  }
+
+  if (command == "sat_dir") {
+    satelliteDirection *= -1;
+    server.send(200, "text/plain; charset=utf-8", "Satellite direction reversed");
+    return;
+  }
+
+  if (command == "sat_pause") {
+    satellitePaused = !satellitePaused;
+    server.send(200, "text/plain; charset=utf-8", "Satellite pause toggled");
+    return;
+  }
+
+  if (command == "reset") {
+    stopMovement();
+    stopBuzzer();
+    satMotorOff();
+    state = READY;
+    rocketPosition = 0.0;
+    satelliteActive = false;
+    server.send(200, "text/plain; charset=utf-8", "Reset");
+    return;
+  }
+
+  server.send(400, "text/plain; charset=utf-8", "Unknown cmd");
+}
+
+bool loadFromLittleFS(String path) {
+  String dataType = "text/plain";
+  if (path.endsWith("/")) path += "index.html";
+
+  if (path.endsWith(".html")) dataType = "text/html";
+  else if (path.endsWith(".css")) dataType = "text/css";
+  else if (path.endsWith(".js"))  dataType = "application/javascript";
+  else if (path.endsWith(".jpg") || path.endsWith(".jpeg")) dataType = "image/jpeg";
+  else if (path.endsWith(".png")) dataType = "image/png";
+
+  if (LittleFS.exists(path)) {
+    File file = LittleFS.open(path, "r");
+    server.streamFile(file, dataType);
+    file.close();
+    return true;
+  }
+  return false;
+}
+
+void handleNotFound() {
+  if (loadFromLittleFS(server.uri())) return;
+  server.send(404, "text/plain; charset=utf-8", "404 Not Found");
+}
+
+// ============================================================
+// SETUP
+// ============================================================
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(BUZZER_PIN, OUTPUT);
+  pinMode(RELAY_CW_PIN, OUTPUT);
+  pinMode(RELAY_CCW_PIN, OUTPUT);
+  pinMode(RELAY_SAT_PIN, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
+
+  motorStop();
+  satMotorOff();
+  noTone(BUZZER_PIN);
+  digitalWrite(LED_PIN, HIGH);
+
+  LittleFS.begin(true);
+
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP(AP_SSID, AP_PASSWORD);
+
+  server.on("/status", HTTP_GET, handleStatus);
+  server.on("/command", HTTP_GET, handleCommand);
+  server.onNotFound(handleNotFound);
+
+  server.begin();
+  startBuzzer(1500, 200, BUZZER_COUNTDOWN);
+}
+
+// ============================================================
+// LOOP
+// ============================================================
+void loop() {
+  server.handleClient();
+  updateBuzzer();
+  updateCountdown();
+  updateMovement();
+  updateSatellite();
+}
